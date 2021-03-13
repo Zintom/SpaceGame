@@ -1,0 +1,5 @@
+﻿
+
+theta(angle) = Atan2(y, x)
+
+unit vector = [cos(theta), sin(theta)]
