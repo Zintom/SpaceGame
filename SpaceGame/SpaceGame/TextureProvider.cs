@@ -19,6 +19,8 @@ namespace SpaceGame
         public Texture2D SmallAsteroid1 { get; private set; }
         public Texture2D SmallAsteroid2 { get; private set; }
 
+        public SpriteFont GameFont { get; private set; }
+
         public TextureProvider(ContentManager content)
         {
             Ship = content.Load<Texture2D>("spaceship");
@@ -28,6 +30,8 @@ namespace SpaceGame
 
             SmallAsteroid1 = content.Load<Texture2D>("small_asteroid_1");
             SmallAsteroid2 = content.Load<Texture2D>("small_asteroid_2");
+
+            GameFont = content.Load<SpriteFont>("GameFont");
         }
 
     }
