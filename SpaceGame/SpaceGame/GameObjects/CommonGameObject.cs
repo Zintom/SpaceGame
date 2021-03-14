@@ -8,10 +8,12 @@ using System.Threading.Tasks;
 
 namespace SpaceGame.GameObjects
 {
-    public class CommonGameObject
+    public abstract class CommonGameObject
     {
 
         public Vector2 Position { get; set; } = Vector2.Zero;
+
+        public abstract Point Size { get; }
 
         protected readonly Viewport _viewport;
 
@@ -24,6 +26,8 @@ namespace SpaceGame.GameObjects
         {
             KeepInViewPortBounds();
         }
+
+        public abstract void Draw(SpriteBatch spriteBatch);
 
         private void KeepInViewPortBounds()
         {
