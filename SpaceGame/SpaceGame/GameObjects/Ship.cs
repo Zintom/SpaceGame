@@ -29,11 +29,11 @@ namespace SpaceGame.GameObjects
         /// </summary>
         private Vector2 _velocity = Vector2.Zero;
 
-        private readonly float TopSpeed = 6f;
+        private readonly float TopSpeed = 600f;
 
-        private readonly float Thrust = 0.0025f;
+        private readonly float Thrust = 300f;
 
-        private readonly float RotationSpeed = 0.005f;
+        private readonly float RotationSpeed = 5f;
 
         private double TimeLastShotTaken = 0f;
 
@@ -54,7 +54,7 @@ namespace SpaceGame.GameObjects
 
         public override void Update(GameTime gameTime)
         {
-            float deltaTime = (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             var keyState = Keyboard.GetState();
             var gamePadState = GamePad.GetState(PlayerIndex.One);
@@ -109,11 +109,11 @@ namespace SpaceGame.GameObjects
             // Remove velocity if space is not being pressed.
             else
             {
-                _velocity = Vector2.Lerp(_velocity, Vector2.Zero, 0.001f * deltaTime);
-                
+                _velocity = Vector2.Lerp(_velocity, Vector2.Zero, 1f * deltaTime);
+
                 // If speed is less than half a pixel per second then round down otherwise you get tiny little jumps in pixels
                 // even when you appear stationary.
-                if(_velocity.Length() <= 0.05f)
+                if (_velocity.Length() <= 1f)
                 {
                     _velocity = Vector2.Zero;
                 }
@@ -127,7 +127,9 @@ namespace SpaceGame.GameObjects
                 _velocity = speedCap;
             }
 
-            Position += _velocity;
+            Position += _velocity * deltaTime;
+
+            Debug.WriteLine($"Velocity: {_velocity.Length()}");
 
             //Debug.WriteLine($"Velocity Vector: {Vector2.Round(_velocity)}, Speed:  {_velocity.Length()}");
 
