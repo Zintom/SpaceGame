@@ -20,7 +20,6 @@ namespace SpaceGame
         private TextureProvider _textureProvider;
 
         PlayingFieldManager _playingField;
-        Ship _player;
 
         public static Texture2D Blank;
 
@@ -33,12 +32,12 @@ namespace SpaceGame
 
         protected override void Initialize()
         {
-            //TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0d / 120d);
+            TargetElapsedTime = TimeSpan.FromMilliseconds(1000.0d / 120d);
             IsFixedTimeStep = false;
 
             _graphics.PreferredBackBufferWidth = 640;
             _graphics.PreferredBackBufferHeight = 480;
-            _graphics.SynchronizeWithVerticalRetrace = false;
+            _graphics.SynchronizeWithVerticalRetrace = true;
             _graphics.ApplyChanges();
 
             Blank = new Texture2D(_graphics.GraphicsDevice, 1, 1);
@@ -53,11 +52,6 @@ namespace SpaceGame
             _textureProvider = new TextureProvider(Content);
 
             _playingField = new PlayingFieldManager(_textureProvider, _graphics.GraphicsDevice.Viewport);
-            _player = new Ship(_textureProvider, _graphics.GraphicsDevice.Viewport, _playingField);
-
-            // Center the player in the screen.
-            _player.Position = new Vector2(_graphics.GraphicsDevice.Viewport.Width / 2 - _player.Size.X / 2, 
-                                          _graphics.GraphicsDevice.Viewport.Height / 2 - _player.Size.Y / 2);
         }
 
         protected override void Update(GameTime gameTime)
@@ -65,8 +59,12 @@ namespace SpaceGame
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            if (!_playingField.InGame && Keyboard.GetState().IsKeyDown(Keys.Enter))
+            {
+                _playingField.StartGame();
+            }
+
             _playingField.Update(gameTime);
-            _player.Update(gameTime);
 
             base.Update(gameTime);
         }
@@ -79,9 +77,28 @@ namespace SpaceGame
 
             _spriteBatch.Begin();
             _playingField.Draw(_spriteBatch);
-            _player.Draw(_spriteBatch);
 
-            _spriteBatch.DrawString(_textureProvider.GameFont, "FPS: " + frameCounter.TicksPerSecond, new Vector2(10, 10), Color.White);
+            Window.Title = $"SpaceGame by Zintom - FPS: {frameCounter.TicksPerSecond}";
+
+            // Draw points
+            _spriteBatch.DrawString(_textureProvider.GameFont, _playingField.Points.ToString().PadLeft(2, '0'), new Vector2(13, 10), Color.White);
+
+            // Draw lives
+            for (int i = 0; i < _playingField.Lives; i++)
+            {
+                _spriteBatch.Draw(_textureProvider.Ship, new Rectangle(13 + (i * 20), 50, 20, 24), Color.White);
+            }
+
+            if (!_playingField.InGame)
+            {
+                string pushEnterText = "Push Enter";
+                var textSize = _textureProvider.GameFont.MeasureString(pushEnterText);
+                _spriteBatch.DrawString(
+                        _textureProvider.GameFont,
+                        pushEnterText,
+                        new Vector2((int)(GraphicsDevice.Viewport.Width / 2 - textSize.X / 2), (int)(GraphicsDevice.Viewport.Height / 4 - textSize.Y / 2)),
+                        Color.White);
+            }
 
             //_spriteBatch.Draw(Blank, new Rectangle(0, 0, 10, 10), Color.White);
             _spriteBatch.End();

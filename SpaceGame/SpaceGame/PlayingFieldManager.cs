@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SpaceGame.GameObjects;
+using SpaceGame.GameObjects.Asteroids;
 using SpaceGame.Helpers;
 using System;
 using System.Collections.Generic;
@@ -19,14 +20,6 @@ namespace SpaceGame
         public void RemoveAsteroid(Asteroid asteroid);
 
         public void AddBullet(Bullet bullet);
-
-        public void RemoveBullet(Bullet bullet);
-
-        public void AddObject(CommonGameObject obj);
-
-        public void RemoveObject(CommonGameObject obj);
-
-        public bool CollidesWithAsteroid(Bullet bullet, [NotNullWhen(true)] out Asteroid? asteroid);
     }
 
     public class PlayingFieldManager : IPlayingFieldManager
@@ -35,19 +28,42 @@ namespace SpaceGame
         private readonly TextureProvider _textureProvider;
         private readonly Viewport _viewport;
 
+        public int Points { get; private set; } = 0;
+
         public int Level { get; private set; } = 1;
+
+        public int Lives { get; private set; } = 0;
+
+        public bool InGame { get; private set; } = false;
+
+        public Ship Player { get; private set; }
 
         private readonly List<Bullet> _bullets = new List<Bullet>();
 
         private readonly List<Asteroid> _asteroids = new List<Asteroid>();
-
-        private readonly List<CommonGameObject> _fieldObjects = new List<CommonGameObject>();
 
         public PlayingFieldManager(TextureProvider textureProvider, Viewport viewport)
         {
             _textureProvider = textureProvider;
             _viewport = viewport;
             SpawnAsteroids();
+
+            Player = new Ship(_textureProvider, viewport, this);
+
+            // Center the player in the screen.
+            CenterObjectInScreen(Player);
+        }
+
+        public void StartGame()
+        {
+            Lives = 3;
+            InGame = true;
+        }
+
+        private void CenterObjectInScreen(CommonGameObject obj)
+        {
+            obj.Position = new Vector2(_viewport.Width / 2 - obj.Size.X / 2,
+                                          _viewport.Height / 2 - obj.Size.Y / 2);
         }
 
         private void NextLevel()
@@ -75,37 +91,86 @@ namespace SpaceGame
                 return;
             }
 
-            for (int i = 0; i < _bullets.Count; i++)
+            // If we're not in-game, just update the asteroids floating about
+            // as in the original game.
+            if (!InGame)
             {
-                _bullets[i]?.Update(gameTime);
+                for (int i = 0; i < _asteroids.Count; i++)
+                {
+                    _asteroids[i]?.Update(gameTime);
+                }
+
+                return;
             }
 
-            for (int i = 0; i < _fieldObjects.Count; i++)
-            {
-                _fieldObjects[i]?.Update(gameTime);
-            }
+            Player.Update(gameTime);
 
             for (int i = 0; i < _asteroids.Count; i++)
             {
                 _asteroids[i]?.Update(gameTime);
             }
+
+            if (CollidesWithAsteroid(Player, out Asteroid? collidedWithPlayer))
+            {
+                Lives--;
+                Player.Reset();
+
+                if (Lives <= 0)
+                {
+                    InGame = false;
+                    Points = 0;
+                    Lives = 0;
+                    Level = 1;
+                    _asteroids.Clear();
+
+                    return;
+                }
+
+                CenterObjectInScreen(Player);
+            }
+
+            for (int i = 0; i < _bullets.Count; i++)
+            {
+                Bullet bullet = _bullets[i];
+                bullet.Update(gameTime);
+
+                // Bullet collision
+                if (CollidesWithAsteroid(bullet, out Asteroid? collidedWithBullet))
+                {
+                    Points += collidedWithBullet.Worth;
+                    collidedWithBullet.Hit();
+                    RemoveBullet(bullet);
+
+                    continue;
+                }
+
+                // Delete the bullet if it flys out of bounds.
+                bool outsideBounds = !_viewport.Bounds.Contains(bullet.Position);
+                if (outsideBounds)
+                {
+                    RemoveBullet(bullet);
+                    continue;
+                }
+            }
         }
         
         public void Draw(SpriteBatch spriteBatch)
         {
-            for (int i = 0; i < _bullets.Count; i++)
-            {
-                _bullets[i]?.Draw(spriteBatch);
-            }
-
-            for (int i = 0; i < _fieldObjects.Count; i++)
-            {
-                _fieldObjects[i]?.Draw(spriteBatch);
-            }
-
             for (int i = 0; i < _asteroids.Count; i++)
             {
                 _asteroids[i]?.Draw(spriteBatch);
+            }
+
+            if(!InGame)
+            {
+                return;
+            }
+
+            Player.Draw(spriteBatch);
+
+            for (int i = 0; i < _bullets.Count; i++)
+            {
+                _bullets[i]?.Draw(spriteBatch);
             }
         }
 
@@ -124,24 +189,14 @@ namespace SpaceGame
             _bullets.Add(bullet);
         }
 
-        void IPlayingFieldManager.RemoveBullet(Bullet bullet)
+        public void RemoveBullet(Bullet bullet)
         {
             _bullets.Remove(bullet);
         }
 
-        void IPlayingFieldManager.AddObject(CommonGameObject obj)
+        public bool CollidesWithAsteroid(CommonGameObject obj, [NotNullWhen(true)] out Asteroid? asteroid)
         {
-            _fieldObjects.Add(obj);
-        }
-
-        void IPlayingFieldManager.RemoveObject(CommonGameObject obj)
-        {
-            _fieldObjects.Remove(obj);
-        }
-
-        bool IPlayingFieldManager.CollidesWithAsteroid(Bullet bullet, [NotNullWhen(true)] out Asteroid? asteroid)
-        {
-            var bulletBounds = new Rectangle(bullet.Position.ToPoint(), bullet.Size);
+            var bulletBounds = new Rectangle(obj.Position.ToPoint(), obj.Size);
 
             for (int i = 0; i < _asteroids.Count; i++)
             {
