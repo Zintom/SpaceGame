@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using SpaceGame.GameObjects.Asteroids;
 using SpaceGame.Helpers;
 using System;
 using System.Collections.Generic;
@@ -27,19 +28,6 @@ namespace SpaceGame.GameObjects
         public override void Update(GameTime gameTime)
         {
             Position += _velocity * (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-
-            if (_playingField.CollidesWithAsteroid(this, out Asteroid? collided))
-            {
-                collided.Hit();
-                _playingField.RemoveBullet(this);
-            }
-
-            bool outsideBounds = !_viewport.Bounds.Contains(Position);
-
-            if (outsideBounds)
-            {
-                _playingField.RemoveObject(this);
-            }
         }
 
         public override void Draw(SpriteBatch spriteBatch)
