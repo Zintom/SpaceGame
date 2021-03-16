@@ -8,7 +8,7 @@ namespace SpaceGame.GameObjects.Asteroids
     {
         public override int Worth { get; } = 50;
 
-        public override Point Size { get; } = new Point(32, 32);
+        public override Point Size { get; } = new Point(40, 40);
 
         protected override Texture2D _texture { get; init; }
 
