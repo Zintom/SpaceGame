@@ -148,5 +148,14 @@ namespace SpaceGame.GameObjects
             //spriteBatch.Draw(_texture, Position, null, Color.Yellow, (float)Math.Atan2(_momentumVector.Y, _momentumVector.X) + MathHelper.ToRadians(90), Origin, 0.25f, SpriteEffects.None, 1);
         }
 
+        /// <summary>
+        /// Reset the velocity and rotation of the ship.
+        /// </summary>
+        public void Reset()
+        {
+            _velocity = Vector2.Zero;
+            _vehicleRotation = 0f;
+        }
+
     }
 }
