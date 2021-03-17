@@ -5,6 +5,7 @@ using SpaceGame.GameObjects;
 using SpaceGame.Helpers;
 using System;
 using System.Security.Cryptography;
+using SpaceGame.Shaders;
 
 #nullable disable
 namespace SpaceGame
@@ -52,6 +53,7 @@ namespace SpaceGame
             _textureProvider = new TextureProvider(Content);
 
             _playingField = new PlayingFieldManager(_textureProvider, _graphics.GraphicsDevice.Viewport);
+            SpriteBatchExtensions.LoadEffects(Content);
         }
 
         protected override void Update(GameTime gameTime)
@@ -102,6 +104,24 @@ namespace SpaceGame
 
             //_spriteBatch.Draw(Blank, new Rectangle(0, 0, 10, 10), Color.White);
             _spriteBatch.End();
+
+
+
+            _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, null, null, null, null, null);
+
+            //_spriteBatch.Draw(new Texture2D(GraphicsDevice, 45, 75), chumpPos, Color.White);
+            //_spriteBatch.Draw(chump, chumpPos, Color.White);
+
+            //_spriteBatch.DrawCircle(GraphicsDevice, chumpPos, 100);d
+            //_spriteBatch.DrawLineFx(GraphicsDevice, new Vector2(150, 150), Mouse.GetState().Position.ToVector2(), Color.White);
+            //_spriteBatch.DrawLine(new Vector2(150, 150), Mouse.GetState().Position.ToVector2(), 1, Color.White);
+
+            //_spriteBatch.DrawCircle(new Vector2(150, 150) - new Vector2(10), 20, Color.White);
+            //_spriteBatch.DrawCircle(Mouse.GetState().Position.ToVector2() - new Vector2(10), 20, 0.5f, Color.Red);
+
+
+            _spriteBatch.End();
+
 
             base.Draw(gameTime);
         }
